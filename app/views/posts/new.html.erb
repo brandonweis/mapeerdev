@@ -1,0 +1,492 @@
+<div class="content-header">
+  <h1>
+    <a id="menu-toggle" href="#" class="btn btn-default"><i class="icon-reorder"></i></a>
+    Create a Meetup
+  </h1>
+</div>
+<!-- Keep all page content within the page-content inset div! -->
+<div class="container">
+  <div class="col-lg-6">
+    <div class="panel panel-default" id="forms" style="padding: 15px;">
+      <div class="panel-heading" style="margin: -15px -15px;">New Meetup</div>
+      <div style="padding-top: 15px; margin: 15px 0 0 0">
+          <div class="form-group">
+            <label for="title">Location</label>
+            <input type="text" class="form-control" id="searchTextField" placeholder="Enter location">
+          </div>  
+        <%= form_for :post, url: posts_path do |f| %>
+          <div class="form-group">
+            <label for="title">Title</label>
+            <input name="post[title]" type="text" class="form-control" id="exampleInputEmail" placeholder="Enter title">
+          </div>
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea name="post[text]" class="form-control" rows="5" placeholder="Enter description"></textarea>
+          </div>          
+          <div class="form-group">
+            <label for="title">Local Date</label>
+            <input class="form-control" data-format="yyyy-MM-dd" type="text" name="post[date]" id="post_date" placeholder="Enter Local Date">
+
+            <script type="text/javascript">
+            $(function() {
+              $('#post_date').datepicker({});
+            });
+            </script>
+          </div>                          
+          <div class="form-group">
+            <label for="description">Time</label>
+            <br/>
+            <%
+            hour_opt = Array.new
+            (0..23).each do |n|
+              hour_opt.push([n, n])
+            end
+
+            %>
+            <%= f.select :hour, hour_opt, :class => "form-control-inline"%>
+
+            <%= f.select :minute, [['0','0'],['15','15'],['30','30'],['45','45']], :class => "form-control-inline" %>
+          </div>
+          <hr>
+<!--           <div class="form-group">
+            <label for="exampleInputFile">Photo (Optional)</label>
+            <input type="file" id="exampleInputFile">
+            <p class="help-block">Example block-level help text here.</p>
+          </div> -->
+          <!-- <button type="submit" class="btn btn-default">Submit</button> -->
+          <%= f.submit :class => "btn btn-default"%>
+      </div>
+    </div>
+  </div> 
+  <div class="col-lg-6"> 
+    <div class="container">
+      <div class="col-lg-6">
+        <div style="padding-top: 15px; margin: -15px -15px;">
+          <!-- <img src="http://maps.googleapis.com/maps/api/staticmap?center=-15.800513,-47.91378&zoom=11&size=538x400&sensor=false" style="width:538px; height:400px;"> -->
+          <div id="map-canvas" style="width: 538px; height: 400px;float:left"></div>
+        </div>
+        <div style="padding-top: 15px; margin: -15px -15px;">
+          <div id="pano" style="width: 538px; height: 400px;float:left; display:none"></div>
+          <!-- <img src="http://maps.googleapis.com/maps/api/streetview?size=538x400&location=40.720032,-73.988354&heading=235&sensor=false" style="width:538px; height:400px;"> -->
+        </div>   
+      </div>   
+    </div>   
+  </div>
+</div>
+
+<div style="display:none;">Hidden from below<br>
+
+
+
+
+    <span>location</span>
+    <%= f.fields_for :location do |b| %>
+      <p>
+        <%= b.label :name %><br>
+        <%= b.text_field :name %>
+      </p>
+      <p>
+        <%= b.label :address %><br>
+        <%= b.text_field :address %>
+      </p>
+      <p>
+        <%= b.label :approx_address %><br>
+        <%= b.text_field :approx_address %>
+      </p>
+      <p>
+        <%= b.label :lat %><br>
+        <%= b.text_field :lat %>
+      </p>
+      <p>
+        <%= b.label :lng %><br>
+        <%= b.text_field :lng %>
+      </p>
+    <% end %>
+    <span>streetview</span>
+    <%= f.fields_for :streetview do |b| %>
+      <p>
+        <%= b.label :heading %><br>
+        <%= b.text_field :heading %>
+      </p>
+      <p>
+        <%= b.label :pitch %><br>
+        <%= b.text_field :pitch %>
+      </p>
+      <p>
+        <%= b.label :lat %><br>
+        <%= b.text_field :lat %>
+      </p>
+      <p>
+        <%= b.label :lng %><br>
+        <%= b.text_field :lng %>
+      </p>
+      <p>
+        <%= b.label :zoom %><br>
+        <%= b.text_field :zoom %>
+      </p>
+    <% end %>
+  <p>
+
+  </p>
+<% end %>
+</div>
+<!-- <div style="width:1200px; height:300px; position:relative">
+  <div id="panel" style="">
+    <input id="searchTextField" type="text" size="50">
+  </div>
+  <div id="map-canvas" style="width: 45%; height: 100%;float:left"></div>
+  <div id="pano" style="width: 45%; height: 100%;float:left"></div>
+</div>
+ -->
+<style>
+input {
+  border: 1px solid  rgba(0, 0, 0, 0.5);
+}
+input.notfound {
+  border: 2px solid  rgba(255, 0, 0, 0.4);
+}
+#map-canvas, #map_canvas {
+  height: 100%;
+}
+
+@media print {
+  html, body {
+    height: auto;
+  }
+
+  #map-canvas, #map_canvas {
+    height: 650px;
+  }
+}
+
+#panel {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  margin-left: -180px;
+  z-index: 5;
+  background-color: #fff;
+  padding: 5px;
+  border: 1px solid #999;
+}
+
+#panel {
+  position: absolute;
+  top: 5px;
+  left: 20%;
+  margin-left: -180px;
+  z-index: 5;
+  background-color: #fff;
+  padding: 5px;
+  border: 1px solid #999;
+}
+</style>
+
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=places,panoramio"></script>
+<script type="text/javascript" src="http://www.panoramio.com/wapi/wapi.js?v=1&amp;hl=fr"></script>
+<script>
+var map;
+var geocoder;
+var sydney = new google.maps.LatLng(-33.8688, 151.2195);
+var sv = new google.maps.StreetViewService();
+var markerArr = [];
+
+var panorama;
+var panoramioLayer;
+var infoWindow;
+var locationAddress= document.getElementById('post_location_address');
+var locationApproxAddress= document.getElementById('post_location_approx_address');
+var locationLat= document.getElementById('post_location_lat');
+var locationLng= document.getElementById('post_location_lng');
+
+var streetviewHeading = document.getElementById('post_streetview_heading');
+var streetviewPitch = document.getElementById('post_streetview_pitch');
+var streetviewLat= document.getElementById('post_streetview_lat');
+var streetviewLng= document.getElementById('post_streetview_lng');
+var streetviewZoom= document.getElementById('post_streetview_zoom');
+
+function initialize() {
+  geocoder = new google.maps.Geocoder();
+  var panoOptions = {
+    linksControl: false,
+    panControl: false
+  };
+  panorama = new google.maps.StreetViewPanorama(document.getElementById('pano'), panoOptions);
+  panoramioLayer = new google.maps.panoramio.PanoramioLayer();
+
+  // Set up the map
+  var mapOptions = {
+    center: sydney,
+    zoom: 16,
+    mapTypeId: google.maps.MapTypeId.ROADMAP,
+    streetViewControl: false
+  };
+  map = new google.maps.Map(document.getElementById('map-canvas'),
+      mapOptions);
+
+  var input = /** @type {HTMLInputElement} */(document.getElementById('searchTextField'));
+  var autocomplete = new google.maps.places.Autocomplete(input);
+  var infowindow = new google.maps.InfoWindow();
+
+  autocomplete.bindTo('bounds', map);
+  // panoramioLayer.setMap(map);
+
+
+  //input changed
+  google.maps.event.addListener(autocomplete, 'place_changed', function() {
+
+    infowindow.close();
+
+    input.className = '';
+    var place = autocomplete.getPlace();
+    if (!place.geometry) {
+      // Inform the user that the place was not found and return.
+      input.className = 'notfound';
+      return;
+    }
+
+    // If the place has a geometry, then present it on a map.
+    if (place.geometry.viewport) {
+      map.fitBounds(place.geometry.viewport);
+    } else {
+      map.setCenter(place.geometry.location);
+      map.setZoom(17);  // Why 17? Because it looks good.
+    }
+
+    var location = place.geometry.location;
+
+    // fillin location lat lng
+    locationLat.value = location.lat(); 
+    locationLng.value = location.lng(); 
+
+    // render marker on the map
+    renderMarker(location, map);
+
+    //get address from the location
+    reverseGeocode(location, function(errorMsg, results){
+      if(!errorMsg){
+        // input.value = results[0].formatted_address || results[1].formatted_address; //0=formal address, 1=layman address
+        locationAddress.value = results[0].formatted_address;
+        locationApproxAddress.value = results[1].formatted_address;
+      }
+      else{
+        alert(errorMsg);
+      }
+    });
+
+    // little hack to recover the class autocomplete deleted
+    $('#searchTextField').attr('class', 'form-control');
+
+    //render streetview
+    sv.getPanoramaByLocation(location, 50, function(data, status){
+
+        //check if there's streetview
+        processSVDataForPano(data, status, function(error, location){
+
+          //if no streetview
+          if(error){
+            streetviewLat.value = ""; 
+            streetviewLng.value = ""; 
+            streetviewPitch.value = "";
+            streetviewHeading.value = "";
+            streetviewZoom.value = "";
+
+            //disable streetview if none found
+            $('#pano').hide();
+            panorama.setVisible(false);
+            return;
+          }
+
+          streetviewPitch.value = panorama.getPov().pitch;
+          streetviewHeading.value = panorama.getPov().heading;
+          streetviewZoom.value = 1;
+
+        });
+      });
+
+  });
+
+  //
+  google.maps.event.addListener(panorama, 'pov_changed', function() {
+      console.log(panorama.getPov());
+      streetviewPitch.value = panorama.getPov().pitch;
+      streetviewHeading.value = panorama.getPov().heading;
+      streetviewZoom.value = panorama.getPov().zoom;
+  });
+
+  //panorama changed
+  google.maps.event.addListener(panorama, 'position_changed', function() {
+      console.log('position changed')
+      console.log(panorama)
+      // clear previous marker if any
+      clearMarker();
+
+      var marker = new google.maps.Marker({
+        position: panorama.getPosition(),
+        map: map,
+        title: panorama.getPosition().description
+      });
+
+
+      // map view port adjusting to street navigating
+      map.panTo(panorama.getPosition());
+
+      renderMarker(panorama.getPosition(), map);
+
+      reverseGeocode(panorama.getPosition(), function(errorMsg, results){
+        if(!errorMsg){
+          // input.value = results[0].formatted_address || results[1].formatted_address; //0=formal address, 1=layman address
+
+          locationAddress.value = input.value;
+          locationApproxAddress.value = results[1].formatted_address;
+          streetviewLat.value = locationLat.value = panorama.getPosition().lat(); 
+          streetviewLng.value = locationLng.value = panorama.getPosition().lng(); 
+        }
+        else{
+          alert(errorMsg);
+        }
+      });
+
+      markerArr.push(marker);
+  });
+
+  // getPanoramaByLocation will return the nearest pano when the given radius is 50 meters or less.
+  // map click event to render marker and panorama if any
+
+  //map click changed
+  google.maps.event.addListener(map, 'click', function(event) {
+
+    var location = event.latLng;
+
+    // render marker on the map
+    renderMarker(location, map);
+
+    //get address from the location
+    reverseGeocode(location, function(errorMsg, results){
+      if(!errorMsg){
+        // input.value = results[0].formatted_address || results[1].formatted_address; //0=formal address, 1=layman address
+        console.log(location);
+        console.log(results);
+        locationAddress.value = input.value;
+        locationApproxAddress.value = results[1].formatted_address;
+      }
+      else{
+        alert(errorMsg);
+      }
+    });
+
+    //render streetview
+    sv.getPanoramaByLocation(location, 50, function(data, status){
+
+        //check if there's streetview
+        processSVDataForPano(data, status, function(error, location){
+
+          // if no streetview
+          if(error){
+            streetviewLat.value = ""; 
+            streetviewLng.value = ""; 
+            streetviewPitch.value = "";
+            streetviewHeading.value = "";
+            streetviewZoom.value = "";
+
+            //disable streetview if none found
+            $('#pano').hide();
+            panorama.setVisible(false);
+            return;
+          }
+
+          streetviewPitch.value = panorama.getPov().pitch;
+          streetviewHeading.value = panorama.getPov().heading;
+          streetviewZoom.value = 1;
+
+          //if streetview exists, use location returened from streetview to retrieve the address
+          reverseGeocode(location, function(errorMsg, results){
+            if(!errorMsg){
+              // input.value = results[0].formatted_address || results[1].formatted_address; //0=formal address, 1=layman address
+              console.log(location);
+              console.log(results);
+              locationAddress.value = input.value;
+              locationApproxAddress.value = results[1].formatted_address;
+              streetviewLat.value = locationLat.value = location.lat(); 
+              streetviewLng.value = locationLng.value = location.lng(); 
+            }
+            else{
+              alert(errorMsg);
+            }
+          });
+
+        });
+      });
+
+  });
+}
+//initialize ends
+
+
+function processSVDataForPano(data, status, cb) {
+  //populate location detail to form
+  console.log(data);
+  if (status == google.maps.StreetViewStatus.OK) {
+    // clear previous marker if any
+
+
+    panorama.setPano(data.location.pano);
+    panorama.setPov({
+      heading: 270,
+      pitch: 0
+    });
+    $('#pano').show();
+    panorama.setVisible(true);
+    cb(null, data.location.latLng)
+  } 
+  else {
+    cb('Street View data not found for this location.', null);
+  }
+}
+
+function renderMarker(location, map){
+    clearMarker();
+
+    var marker = new google.maps.Marker({
+      position:location,
+      map: map
+    });
+
+    markerArr.push(marker);
+}
+
+function reverseGeocode(latlng, cb){
+    geocoder.geocode({'latLng': latlng}, function(results, status) {
+    if (status == google.maps.GeocoderStatus.OK) {
+      if (results[0] || results[1]) {
+        cb(null, results);
+      } else {
+        cb('No results found', null);
+      }
+    } else {
+      cb('Geocoder failed due to: '+status, null);
+    }
+  });
+}
+
+function clearMarker(){
+
+  if(typeof markerArr === 'undefined')
+    return;
+
+  if(markerArr && markerArr.length !== 0){
+    for(var i = 0; i < markerArr.length; ++i){
+        markerArr[i].setMap(null);
+    }
+  }
+}
+
+google.maps.event.addDomListener(window, 'load', function(){
+  initialize();
+
+});
+
+
+
+
+</script>

@@ -1,0 +1,195 @@
+<h1>Show posts</h1>
+ 
+<table>
+ 
+
+  <tr><td><%= @posts.title %></td></tr>  
+  <tr><td><%= @posts.text %></td></tr>  
+  <tr><td><%= @posts.location.name %></td></tr>
+  <tr><td><%= @posts.location.address %></td></tr>
+  <tr><td><%= @posts.location.approx_address %></td></tr>
+  <%if !@posts.streetview.heading.nil? %>
+  <tr><img src="http://maps.googleapis.com/maps/api/streetview?size=540x300&location=<%= @posts.streetview.lat %>,%20<%= @posts.streetview.lng %>&fov=90&heading=<%= @posts.streetview.heading %>&pitch=<%= @posts.streetview.pitch %>&sensor=false"></tr>
+  <% end %>
+</table>
+
+<div style="width:1200px; height:300px; position:relative">
+  <div id="map-canvas" style="width: 45%; height: 100%;float:left"></div>
+  <div id="pano" style="width: 45%; height: 100%;float:left"></div>
+</div>
+
+<style>
+#map-canvas, #map_canvas {
+  height: 100%;
+}
+
+@media print {
+  html, body {
+    height: auto;
+  }
+
+  #map-canvas, #map_canvas {
+    height: 650px;
+  }
+}
+
+</style>
+
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=places,panoramio"></script>
+<script type="text/javascript" src="http://www.panoramio.com/wapi/wapi.js?v=1&amp;hl=fr"></script>
+<script>
+var map;
+var geocoder;
+var sydney = new google.maps.LatLng(-33.8688, 151.2195);
+var sv = new google.maps.StreetViewService();
+var markerArr = [];
+var lat = <%= @posts.streetview.lat ? @posts.streetview.lat : "0" %>
+var lng = <%= @posts.streetview.lng ? @posts.streetview.lng : "0" %>
+var heading = <%= @posts.streetview.heading ? @posts.streetview.heading : "0" %>
+var pitch = <%= @posts.streetview.pitch ? @posts.streetview.pitch : "0" %>
+var zoom = <%= @posts.streetview.zoom ? @posts.streetview.zoom : "0" %>
+
+var panorama;
+var panoramioLayer;
+var infoWindow;
+
+function initialize() {
+  geocoder = new google.maps.Geocoder();
+  panorama = new google.maps.StreetViewPanorama(document.getElementById('pano'));
+  panoramioLayer = new google.maps.panoramio.PanoramioLayer();
+
+  // Set up the map
+  var mapOptions = {
+    center: sydney,
+    zoom: 16,
+    mapTypeId: google.maps.MapTypeId.ROADMAP,
+    streetViewControl: false
+  };
+  map = new google.maps.Map(document.getElementById('map-canvas'),
+      mapOptions);
+
+  
+  //set streetview and set marker on map, 50 is the search radius for streetview
+  var meetup_latlng = new google.maps.LatLng(lat, lng);
+  sv.getPanoramaByLocation(meetup_latlng, 50, function(data, status){
+    processSVDataForPano(data, status, function(error, location){
+      if(error){
+        //use this latlng from click event as location if no streetview latlng found
+        location = event.latLng;
+        //disable streetview if none found
+        $('#pano').hide();
+        panorama.setVisible(false)
+      }
+
+      renderMarker(location, map);
+
+    })
+  });
+
+  var infowindow = new google.maps.InfoWindow();
+
+  //panorama changed
+  google.maps.event.addListener(panorama, 'position_changed', function() {
+      console.log('position changed');
+
+      // map view port adjusting to street navigating
+      map.panTo(panorama.getPosition());
+
+      renderMarker(panorama.getPosition(), map);
+
+  });
+
+  // getPanoramaByLocation will return the nearest pano when the given radius is 50 meters or less.
+  // map click event to render marker and panorama if any
+
+  //map click changed
+  google.maps.event.addListener(map, 'click', function(event) {
+      console.log(event);
+      sv.getPanoramaByLocation(event.latLng, 50, function(data, status){
+        processSVDataForPano(data, status, function(error, location){
+          if(error){
+            //use this latlng from click event as location if no streetview latlng found
+            location = event.latLng;
+            //disable streetview if none found
+            $('#pano').hide();
+            panorama.setVisible(false)
+          }
+
+          renderMarker(location, map);
+
+        })
+      });
+  });
+}
+//initialize ends
+
+
+function processSVDataForPano(data, status, cb) {
+  //populate location detail to form
+  console.log(data);
+  if (status == google.maps.StreetViewStatus.OK) {
+    // clear previous marker if any
+
+
+    panorama.setPano(data.location.pano);
+    panorama.setPov({
+      heading: heading,
+      pitch: pitch, 
+      zoom: zoom
+    });
+    $('#pano').show();
+    panorama.setVisible(true);
+    cb(null, data.location.latLng)
+  } 
+  else {
+    cb('Street View data not found for this location.', null);
+  }
+}
+
+function renderMarker(location, map){
+    clearMarker();
+
+    var marker = new google.maps.Marker({
+      position:location,
+      map: map
+    });
+
+    markerArr.push(marker);
+}
+
+function reverseGeocode(latlng, cb){
+    geocoder.geocode({'latLng': latlng}, function(results, status) {
+      console.log(results);
+    if (status == google.maps.GeocoderStatus.OK) {
+      if (results[0] || results[1]) {
+        cb(null, results);
+      } else {
+        cb('No results found', null);
+      }
+    } else {
+      cb('Geocoder failed due to: '+status, null);
+    }
+  });
+}
+
+function clearMarker(){
+
+  if(typeof markerArr === 'undefined')
+    return;
+
+  if(markerArr && markerArr.length !== 0){
+    for(var i = 0; i < markerArr.length; ++i){
+        markerArr[i].setMap(null);
+    }
+  }
+}
+
+google.maps.event.addDomListener(window, 'load', function(){
+  initialize();
+
+});
+
+
+
+
+</script>

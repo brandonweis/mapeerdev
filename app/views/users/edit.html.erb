@@ -1,0 +1,35 @@
+<div class="content-header">
+  <h1>
+    <a id="menu-toggle" href="#" class="btn btn-default"><i class="icon-reorder"></i></a>
+    Profile setting
+  </h1>
+</div>
+<!-- Keep all page content within the page-content inset div! -->
+<div class="container">
+  <div class="col-lg-6">
+    <div class="panel panel-default" id="forms" style="padding: 15px;">
+      <div class="panel-heading" style="margin: -15px -15px;">Register</div>
+      <div style="padding-top: 15px; margin: 15px 0 0 0">
+        <%= form_for :user, url: profile_setting_path do |f| %>
+          <div class="form-group">
+            <label for="title">Name</label>
+            <%= f.text_field :name, :class => "form-control", :placeholder => "Enter username" %>
+          </div>
+          <div class="form-group">
+            <label for="title">Email</label>
+            <%= f.text_field :email, :class => "form-control", :placeholder => "Enter email" %>
+          </div>
+          <div class="form-group">
+            <label for="title">Gender</label><br>
+            <%= f.select(:gender, {"male" => "1", "female" => "2"}, :class => "form-control")  %>
+          </div>
+          <div class="form-group">
+            <label for="title">Bio</label>
+            <%= f.text_area :bio, :class => "form-control", :placeholder => "Your bio" %>
+          </div>
+          <%= f.submit :class => "btn btn-default", :value => "Save" %>
+        <% end %>
+      </div>
+    </div>
+  </div> 
+</div>

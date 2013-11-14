@@ -1,0 +1,132 @@
+<div class="content-header">
+  <h1>
+    <a id="menu-toggle" href="#" class="btn btn-default"><i class="icon-reorder"></i></a>
+    Meetups you joined
+  </h1>
+</div>
+<!-- Keep all page content within the page-content inset div! -->
+<div class="container">
+  <% @posts.each do |post| %>
+
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="panel panel-default" id="content-formatting" style="padding: 15px;">
+        <div class="panel-heading" style="margin: -15px -15px;">28 November 2013 (3 weeks away), San Francisco, California, USA
+        </div>
+        <div style="padding-top: 15px; margin: -15px -15px;">
+          <img src="http://maps.googleapis.com/maps/api/staticmap?center=<%= post.location.lat %> ,<%= post.location.lng %>&zoom=16&size=538x400&sensor=false&markers=<%= post.location.lat %> ,<%= post.location.lng %>" style="width:553px; height:400px;">
+        </div>
+        <p class="lead" style="margin-top:21px"><%= post.title %></p>
+        <p><%= post.text %></p>
+        <hr>
+        <div class="row">
+          <address class="col-lg-6">                
+            <strong><%= post.location.name %></strong><br>                
+            <%= post.location.address %>            
+          </address>
+          <div class="col-lg-6">
+            <%
+            if !@userHostedPosts.include?(post._id)
+              if !@userJoinedPosts.include?(post._id)
+                %>
+                <a href="<%= root_url%>join/<%= post._id %>" data-postid="<%= post._id %>" class="btn btn-primary btn-large pull-right joinBtn">Join</a>
+                <%   
+
+              else
+                %>
+                <a href="<%= root_url%>withdraw/<%= post._id %>" data-postid="<%= post._id %>" class="btn btn-primary btn-large pull-right withdrawBtn">Withdrawn</a>
+                <%     
+              end
+
+            else
+              %>
+              <button type="button" data-postid="<%= post.text %>" class="btn btn-primary btn-large pull-right">Hosting</button>
+              <%
+
+            end
+            %>
+          </div>
+        </div>
+        <hr>
+        <blockquote><%= post.text %>
+          <% if post.host.present? %>
+            <small><%= post.host.name %></small>
+          <% end %>
+        </blockquote>
+        <hr>
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="media">
+              <a class="pull-left" href="#">    <img class="media-object" src="https://app.divshot.com/img/placeholder-64x64.gif">  </a>
+              <div class="media-body">
+                <h4 class="media-heading">Media heading</h4>
+                <p>This is the content for your media.</p>
+              </div>
+            </div>
+            <div class="media">
+              <a class="pull-left" href="#">    <img class="media-object" src="https://app.divshot.com/img/placeholder-64x64.gif">  </a>
+              <div class="media-body">
+                <h4 class="media-heading">Media heading</h4>
+                <p>This is the content for your media.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <hr>
+        <pre>function preFormatting() {  // looks like this;  var something = somethingElse;  return true;}</pre>
+      </div>
+    </div>  
+  </div>  
+  <% end %>
+
+</div>  
+
+
+
+
+
+
+
+<script type="text/javascript">
+
+$('body').on('click', 'a.joinBtn', function() {
+  var url = $(this).attr('href');
+  var $this = $(this);
+  var postid = $this.data('postid');
+
+  $.ajax({
+    type: 'POST',
+    url: url,
+    success: function(data){
+      console.log(data);
+      if(!data.error){
+        $this.replaceWith("<a href='"+root_url+"withdraw/"+postid+"' data-postid='"+postid+"' class='btn btn-primary btn-large pull-right withdrawBtn'>Withdrawn</a>");
+      }
+    }
+  });
+
+  return false;
+});
+
+$('body').on('click', 'a.withdrawBtn', function() {
+  var url = $(this).attr('href');
+  var $this = $(this);
+  var postid = $this.data('postid');
+
+  $.ajax({
+    type: 'POST',
+    url: url,
+    success: function(data){
+      console.log(data);
+      if(!data.error){
+        $this.replaceWith("<a href='"+root_url+"join/"+postid+"' data-postid='"+postid+"' class='btn btn-primary btn-large pull-right joinBtn'>Join</a>");
+      }
+    }
+  });
+
+  return false;
+});
+</script>
+
+
+
