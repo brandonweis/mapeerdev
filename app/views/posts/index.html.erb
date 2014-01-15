@@ -26,8 +26,8 @@
           </address>
           <div class="col-lg-6">
             <%
-            if !@userHostedPosts.include?(post._id)
-              if !@userJoinedPosts.include?(post._id)
+            if !@userHostedPosts.nil? && !@userHostedPosts.include?(post._id)
+              if !@userJoinedPosts.nill? && !@userJoinedPosts.include?(post._id)
                 %>
                 <a href="<%= root_url%>join/<%= post._id %>" data-postid="<%= post._id %>" class="btn btn-primary btn-large pull-right joinBtn">Join</a>
                 <%   
@@ -39,9 +39,18 @@
               end
 
             else
-              %>
-              <button type="button" data-postid="<%= post.text %>" class="btn btn-primary btn-large pull-right">Hosting</button>
-              <%
+              if @userHostedPosts.nil? && @userJoinedPosts.nil?
+                %>
+                <button data-postid="<%= post._id %>" class="btn btn-primary btn-large pull-right joinBtn" data-toggle="modal" data-target="#redirectToSignupLogin">Sign up or Login to join</button>
+                <!-- <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#redirectToSignupLogin">
+                  Launch demo modal
+                </button> -->
+                <%
+              else
+                %>
+                <button type="button" data-postid="<%= post.text %>" class="btn btn-primary btn-large pull-right">Hosting</button>
+                <%
+              end
 
             end
             %>
@@ -81,7 +90,24 @@
 
 </div>  
 
-
+<div class="modal fade" id="redirectToSignupLogin" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Redirecting ...</h4>
+      </div>
+      <div class="modal-body">
+      Sign up or login to join with others in this meetup!
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Later</button>
+        <button type="button" class="btn btn-primary" onclick="window.location='<%= root_url%>/log_in'">Ok, Sign up</button>
+        <button type="button" class="btn btn-primary" onclick="window.location='<%= root_url%>/log_in'">Ok, Login</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
 
 
@@ -101,6 +127,9 @@ $('body').on('click', 'a.joinBtn', function() {
       console.log(data);
       if(!data.error){
         $this.replaceWith("<a href='"+root_url+"withdraw/"+postid+"' data-postid='"+postid+"' class='btn btn-primary btn-large pull-right withdrawBtn'>Withdrawn</a>");
+      }
+      else{
+        window.location.href = "<%=root_url%><%=log_in_path %>";
       }
     }
   });

@@ -37,31 +37,33 @@ class PostsController < ApplicationController
 	end
 
 	def index
-	  @posts = Post
+	  	@posts = Post
 
-	  @user = User.find(current_user._id)
-	  @userJoinedPosts = @user.joinedpost_ids
-	  @userHostedPosts = @user.hostedpost_ids
+	  	if !current_user.nil?
+		  @user = User.find(current_user._id)
+		  @userJoinedPosts = @user.joinedpost_ids
+		  @userHostedPosts = @user.hostedpost_ids
+		end
 	end	
 
 	def joinedposts
-	  @user = User.find(current_user._id)
+		  @user = User.find(current_user._id)
 
-	  @posts = @user.joinedposts
+		  @posts = @user.joinedposts
 
-	  @userJoinedPosts = @user.joinedpost_ids
-	  @userHostedPosts = @user.hostedpost_ids
-	  # render :text => @posts.inspect
+		  @userJoinedPosts = @user.joinedpost_ids
+		  @userHostedPosts = @user.hostedpost_ids
+		  # render :text => @posts.inspect
 	end
 
 	def hostedposts
-	  @user = User.find(current_user._id)
+		  @user = User.find(current_user._id)
 
-	  @posts = @user.hostedposts
+		  @posts = @user.hostedposts
 
-	  @userJoinedPosts = @user.joinedpost_ids
-	  @userHostedPosts = @user.hostedpost_ids
-	  # render :text => @posts.inspect
+		  @userJoinedPosts = @user.joinedpost_ids
+		  @userHostedPosts = @user.hostedpost_ids
+		  # render :text => @posts.inspect
 	end
 
   private
