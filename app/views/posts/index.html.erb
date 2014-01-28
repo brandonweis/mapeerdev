@@ -27,7 +27,7 @@
           <div class="col-lg-6">
             <%
             if !@userHostedPosts.nil? && !@userHostedPosts.include?(post._id)
-              if !@userJoinedPosts.nill? && !@userJoinedPosts.include?(post._id)
+              if !@userJoinedPosts.nil? && !@userJoinedPosts.include?(post._id)
                 %>
                 <a href="<%= root_url%>join/<%= post._id %>" data-postid="<%= post._id %>" class="btn btn-primary btn-large pull-right joinBtn">Join</a>
                 <%   
