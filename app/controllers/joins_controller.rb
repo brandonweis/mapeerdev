@@ -9,7 +9,7 @@ class JoinsController < ApplicationController
 
 			@user = User.find(current_user._id);
 
-			if !@user.nil
+			if !@user.nil?
 				@user.joinedposts << @post
 
 				format.json { # This block will be called for JSON requests

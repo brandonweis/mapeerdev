@@ -18,7 +18,7 @@ Blog::Application.routes.draw do
 
   get "posts/show"
   get 'posts/:id', to: 'posts#show'
-  get 'joins/:id', to: 'joins#create'
+  get 'joins/:id', to: 'posts#joinedposts'
   post 'join/:id', to: 'joins#create'
   post 'withdraw/:id', to: 'joins#delete'
   # The priority is based upon order of creation: first created -> highest priority.
