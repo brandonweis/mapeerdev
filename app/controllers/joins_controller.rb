@@ -12,9 +12,15 @@ class JoinsController < ApplicationController
 			if !@user.nil?
 				@user.joinedposts << @post
 
-				format.json { # This block will be called for JSON requests
-					render :json => {:error => false, :msg => "joined post #"+params[:id]}
-				}
+				if @user.save!
+					format.json { # This block will be called for JSON requests
+						render :json => {:error => false, :msg => "joined post #"+params[:id]}
+					}
+				else
+					format.json { # This block will be called for JSON requests
+						render :json => {:error => true, :msg => "saving error."}
+					}
+				end
 			else
 				format.json { # This block will be called for JSON requests
 					render :json => {:error => true, :msg => "not login"}

@@ -1,5 +1,7 @@
 Blog::Application.routes.draw do
 
+  resources :comments
+
   get "log_in" => "sessions#new", :as => "log_in"
   get "sign_up" => "users#new", :as => "sign_up"
   get "log_out" => "sessions#destroy", :as => "log_out"
@@ -15,12 +17,19 @@ Blog::Application.routes.draw do
   resources :sessions
   get "posts/new"
   post "posts/index"
+  post "posts/search/location/", to: 'posts#searchloc'
 
   get "posts/show"
   get 'posts/:id', to: 'posts#show'
   get 'joins/:id', to: 'posts#joinedposts'
   post 'join/:id', to: 'joins#create'
   post 'withdraw/:id', to: 'joins#delete'
+  post 'comments/', to: 'comments#create'
+  post 'conversations/', to: 'conversation#create'
+  # get 'conversations/:comment_id', to: 'conversation#show'
+  post 'conversations/:comment_id', to: 'conversation#show'
+  post 'conversations/approve/:comment_id', to: 'conversation#approve'
+  post 'conversations/reject/:comment_id', to: 'conversation#reject'
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 

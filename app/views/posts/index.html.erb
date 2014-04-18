@@ -1,11 +1,23 @@
 <div class="content-header">
   <h1>
     <a id="menu-toggle" href="#" class="btn btn-default"><i class="icon-reorder"></i></a>
-    Meetups all around the world
+    
   </h1>
 </div>
 <!-- Keep all page content within the page-content inset div! -->
 <div class="container">
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="panel panel-default" id="content-formatting" style="padding: 15px;">
+        <label for="title">Location <small>nearest</small></label>
+        <form id="searchForm"> 
+        <input type="text" class="form-control" id="searchTextField" placeholder="Search meetup on location">
+        <input id="locationLat" name="lat" type="hidden">
+        <input id="locationLng" name="lng" type="hidden">
+        </form>
+      </div>  
+    </div>  
+  </div>
   <% @posts.each do |post| %>
 
   <div class="row">
@@ -34,12 +46,13 @@
             if !@userHostedPosts.nil? && !@userHostedPosts.include?(post._id)
               if !@userJoinedPosts.nil? && !@userJoinedPosts.include?(post._id)
                 %>
-                <a href="<%= root_url%>join/<%= post._id %>" data-postid="<%= post._id %>" class="btn btn-primary btn-large pull-right joinBtn">Join</a>
+                <!-- <a href="<%= root_url%>join/<%= post._id %>" data-postid="<%= post._id %>" class="btn btn-primary btn-large pull-right joinBtn">Join</a> -->
+                <a id="<%= post._id %>_requestBtn" data-postid="<%= post._id %>" class="btn btn-primary btn-large pull-right interestBtn">I'm interested</a>
                 <%   
 
               else
                 %>
-                <a href="<%= root_url%>withdraw/<%= post._id %>" data-postid="<%= post._id %>" class="btn btn-primary btn-large pull-right withdrawBtn">Withdrawn</a>
+                <a href="<%= root_url%>withdraw/<%= post._id %>" data-postid="<%= post._id %>" class="btn btn-primary btn-large pull-right withdrawBtn">Request Sent</a>
                 <%     
               end
 
@@ -62,35 +75,6 @@
           </div>
         </div>
         <hr>
-        <div class="row">
-          <div class="col-lg-12">
-            <%= form_for :message, url: users_path do |f| %>
-              <div class="form-group">
-                <%= f.text_field :name, :class => "form-control", :placeholder => "Say something" %>
-              </div>
-              <%= f.submit :class => "btn btn-default", :style => "display:none", :value => "Sign up" %>
-            <% end %>
-          </div>
-          <hr>
-          <div class="col-lg-12">
-            <div class="media">
-              <a class="pull-left" href="#">    <img class="media-object" src="https://app.divshot.com/img/placeholder-64x64.gif">  </a>
-              <div class="media-body">
-                <h4 class="media-heading">Media heading</h4>
-                <p>This is the content for your media.</p>
-              </div>
-            </div>
-            <div class="media">
-              <a class="pull-left" href="#">    <img class="media-object" src="https://app.divshot.com/img/placeholder-64x64.gif">  </a>
-              <div class="media-body">
-                <h4 class="media-heading">Media heading</h4>
-                <p>This is the content for your media.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <hr>
-        <pre>function preFormatting() {  // looks like this;  var something = somethingElse;  return true;}</pre>
       </div>
     </div>  
   </div>  
@@ -117,7 +101,33 @@
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
-
+<div class="modal fade" id="interestModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Message to the Host</h4>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-lg-12">
+            <%= form_for Comment.new, :html => {:class => "comments_form"}, url: comments_path do |f| %>
+              <div class="form-group">
+                <%= f.text_field :text, :class => "form-control comments", :placeholder => "Say something" %>
+                <input id="comment_post_id" name="comment[post_id]" type="hidden" value="">
+              </div>
+              <%= f.submit :class => "btn btn-default", :style => "display:none", :value => "Sign up" %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <small style="float: left;" class="errorMsg">Tip: Send a private message to the host so that they know more about you.</small>
+        <a id="sendInterestBtn" class="btn btn-primary btn-large pull-right">Ok</a>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
 
 
@@ -163,6 +173,118 @@ $('body').on('click', 'a.withdrawBtn', function() {
 
   return false;
 });
+
+$('#interestModal').modal({ show: false}); //trigger message modal manually
+
+$('body').on('click', 'a.interestBtn', function() {
+  var postId = $(this).data('postid');
+  console.log(postId);
+  $('#interestModal').modal('show');
+  $('#comment_post_id').val(postId);
+});
+
+$('body').on('submit', 'form.comments_form', function(e) {
+
+  e.preventDefault();
+
+  var $this = $(this);
+  var postid = $this.find("input#comment_post_id").val();
+
+  if($this.find('input.comments').val() == ""){
+    $this.find('input.comments').css("border-color","red");
+    $this.closest('.modal-body').next().find('small.errorMsg').html("You can't send an empty message.");
+    return;
+  }
+
+  $.ajax({
+    type: 'POST',
+    url: $this.attr('action'),
+    data: $this.serialize(),
+    dataType: "JSON",
+    success: function(data){
+      // console.log(data);
+      if(!data.error){
+        $this.find('input.comments').val('');
+        $('#interestModal').modal('hide');
+        $("#"+postid+"_requestBtn").html("Request Sent");
+      }
+    }
+  });
+
+  return false;
+});
+
+$('body').on('click', 'a#sendInterestBtn', function(e) {
+  $(this).parent().prev().find("form.comments_form").submit();
+});
+</script>
+
+
+
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=places"></script>
+<script>
+$(function() {
+
+  var locationLat= document.getElementById('post_location_lat');
+  var locationLng= document.getElementById('post_location_lng');
+
+  function initialize() {
+    var mapOptions = {
+      center: new google.maps.LatLng(-33.8688, 151.2195),
+      zoom: 13
+    };
+
+    var input = /** @type {HTMLInputElement} */(
+        document.getElementById('searchTextField'));
+
+    var autocomplete = new google.maps.places.Autocomplete(input);
+
+    google.maps.event.addListener(autocomplete, 'place_changed', function() {
+      
+      var place = autocomplete.getPlace();
+      if (!place.geometry) {
+        return;
+      }
+
+      var location = place.geometry.location;
+      $('#locationLat').val(location.lat());
+      $('#locationLng').val(location.lng());
+
+      var url = root_url+"posts/search/location/"
+
+      $.ajax({
+        type: 'POST',
+        url: url,
+        data: $("#searchForm").serialize(),
+        dataType: "JSON",
+        success: function(data){
+          console.log(data);
+          if(data.error){
+            // input.value = data.msg
+            console.log(data.msg);
+          }
+        }
+      });
+
+
+      var address = '';
+      if (place.address_components) {
+        address = [
+          (place.address_components[0] && place.address_components[0].short_name || ''),
+          (place.address_components[1] && place.address_components[1].short_name || ''),
+          (place.address_components[2] && place.address_components[2].short_name || '')
+        ].join(' ');
+      }
+
+    });
+
+  }
+
+  google.maps.event.addDomListener(window, 'load', initialize);
+
+});
+
+
 </script>
 
 

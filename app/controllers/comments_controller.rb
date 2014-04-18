@@ -10,6 +10,7 @@ class CommentsController < ApplicationController
   # GET /comments/1
   # GET /comments/1.json
   def show
+
   end
 
   # GET /comments/new
@@ -24,12 +25,25 @@ class CommentsController < ApplicationController
   # POST /comments
   # POST /comments.json
   def create
-    @comment = Comment.new(comment_params)
-
+    # @post = Post.find(params[:comment][:post_id])
+    # render :text => @post.inspect
     respond_to do |format|
-      if @comment.save
-        format.html { redirect_to @comment, notice: 'Comment was successfully created.' }
-        format.json { render action: 'show', status: :created, location: @comment }
+
+      @post = Post.find(params[:comment][:post_id])
+      @user = User.find(current_user._id);
+      if !@post.nil? || !@user.nil?
+        @comment = Comment.new(comment_params)
+        @post.comments << @comment
+        @user.joinedposts << @post
+
+
+        if @post.save! && @user.save!
+          format.html { redirect_to @comment, notice: 'Comment was successfully created.' }
+          format.json { render action: 'show', status: :created, location: @comment }
+        else
+          format.html { render action: 'new' }
+          format.json { render json: @comment.errors, status: :unprocessable_entity }
+        end
       else
         format.html { render action: 'new' }
         format.json { render json: @comment.errors, status: :unprocessable_entity }
@@ -69,6 +83,6 @@ class CommentsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def comment_params
-      params[:comment]
+      params.require(:comment).permit(:text, :post_id).merge(user_name: current_user.name, user_id: current_user._id)
     end
 end

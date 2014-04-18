@@ -1,98 +1,95 @@
 <div class="content-header">
   <h1>
     <a id="menu-toggle" href="#" class="btn btn-default"><i class="icon-reorder"></i></a>
-    Meetups you joined
+    Meetups you have joined
   </h1>
 </div>
 <!-- Keep all page content within the page-content inset div! -->
 <div class="container">
-  <% @posts.each do |post| %>
-
   <div class="row">
     <div class="col-lg-6">
-      <div class="panel panel-default" id="content-formatting" style="padding: 15px;">
-        <div class="panel-heading" style="margin: -15px -15px;">28 November 2013 (3 weeks away), San Francisco, California, USA
-        </div>
-        <div style="padding-top: 15px; margin: -15px -15px;">
-          <img src="http://maps.googleapis.com/maps/api/staticmap?center=<%= post.location.lat %> ,<%= post.location.lng %>&zoom=16&size=538x400&sensor=false&markers=<%= post.location.lat %> ,<%= post.location.lng %>" style="width:553px; height:400px;">
-        </div>
-        <p class="lead" style="margin-top:21px"><%= post.title %></p>
-        <p><%= post.text %></p>
-        <hr>
-        <div class="row">
-          <address class="col-lg-6">                
-            <strong><%= post.location.name %></strong><br>                
-            <%= post.location.address %>            
-          </address>
-          <div class="col-lg-6">
-            <%
-            if !@userHostedPosts.include?(post._id)
-              if !@userJoinedPosts.include?(post._id)
-                %>
-                <a href="<%= root_url%>join/<%= post._id %>" data-postid="<%= post._id %>" class="btn btn-primary btn-large pull-right joinBtn">Join</a>
-                <%   
-
-              else
-                %>
-                <a href="<%= root_url%>withdraw/<%= post._id %>" data-postid="<%= post._id %>" class="btn btn-primary btn-large pull-right withdrawBtn">Withdrawn</a>
-                <%     
-              end
-
-            else
-              %>
-              <button type="button" data-postid="<%= post.text %>" class="btn btn-primary btn-large pull-right">Hosting</button>
-              <%
-
-            end
-            %>
-          </div>
-        </div>
-        <hr>
-        <blockquote><%= post.text %>
-          <% if post.host.present? %>
-            <small><%= post.host.name %></small>
-          <% end %>
-        </blockquote>
-        <hr>
+      <% @posts.each do |post| %>
         <div class="row">
           <div class="col-lg-12">
-            <div class="media">
-              <a class="pull-left" href="#">    <img class="media-object" src="https://app.divshot.com/img/placeholder-64x64.gif">  </a>
-              <div class="media-body">
-                <h4 class="media-heading">Media heading</h4>
-                <p>This is the content for your media.</p>
+            <div class="panel panel-default" id="content-formatting" style="padding: 15px;">
+              <div class="panel-heading" style="margin: -15px -15px;">28 November 2013 (3 weeks away), San Francisco, California, USA
+              </div>
+              <div style="padding-top: 15px; margin: -15px -15px;">
+                <img src="http://maps.googleapis.com/maps/api/staticmap?center=<%= post.location.lat %> ,<%= post.location.lng %>&zoom=16&size=538x400&sensor=false&markers=<%= post.location.lat %> ,<%= post.location.lng %>" style="width:553px; height:400px;">
+              </div>
+              <p class="lead" style="margin-top:21px"><%= post.title %></p>
+              <p><%= post.text %></p>
+              <hr>
+              <div class="row">
+                <address class="col-lg-6">                
+                  <strong><%= post.location.name %></strong><br>                
+                  <%= post.location.address %>            
+                </address>
+              </div>
+              <hr>
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="list-group">
+                    <% post.comments.each do |comment| %>
+
+                      <% if Moped::BSON::ObjectId(comment.user_id) == current_user._id %>
+                        <a href="#" class="list-group-item requestBtn" id="<%= post._id %>_requestBtn" data-commentid="<%= comment._id %>">          
+                          <% if comment.post_id.present? %>
+                            <h4 class="list-group-item-heading"><%= comment.user_name %></h4>   
+                          <% end %>      
+                          <p class="list-group-item-text"><%= comment.text %></p>        
+                        </a>
+                      <% end %>
+                    <% end %>
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="media">
-              <a class="pull-left" href="#">    <img class="media-object" src="https://app.divshot.com/img/placeholder-64x64.gif">  </a>
-              <div class="media-body">
-                <h4 class="media-heading">Media heading</h4>
-                <p>This is the content for your media.</p>
+          </div>  
+        </div>  
+      <% end %>
+    </div>
+    <!-- sticky div that has the vieport height -->
+    <div id="dialogBox" class="col-lg-6" style="display:none">
+      <div class="panel panel-default affix col-lg-4" style="padding: 15px;">
+        <div class="row">
+            <ul class="list-group" id="conversations_list">
+            </ul>
+        </div>
+        <div class="row conversation_sec">
+          <div class="col-lg-12">
+            <%= form_for Conversation.new, :html => {:class => "conversation_form"}, url: conversations_path do |f| %>
+              <div class="form-group">
+                <%= f.text_field :text, :class => "form-control comments", :placeholder => "Say something" %>
+                <input id="comment_id" name="conversation[comment_id]" type="hidden" value="">
               </div>
-            </div>
+              <%= f.submit :class => "btn btn-default", :style => "display:none", :value => "Sign up" %>
+            <% end %>
           </div>
         </div>
-        <hr>
-        <pre>function preFormatting() {  // looks like this;  var something = somethingElse;  return true;}</pre>
+        <div class="row conversation_sec">
+          <div class="col-lg-10">
+            <small style="float: left;" class="errorMsg">Reply to the request to your meetup.</small>
+          </div>
+          <div class="col-lg-2">
+            <a id="replySubmitBtn" class="btn btn-primary btn-large pull-right">submit</a>
+          </div>
+        </div>
       </div>
-    </div>  
-  </div>  
-  <% end %>
-
+    </div>
+  </div>
 </div>  
-
-
-
-
-
-
 
 <script type="text/javascript">
 
-$('body').on('click', 'a.joinBtn', function() {
-  var url = $(this).attr('href');
-  var $this = $(this);
-  var postid = $this.data('postid');
+$('body').on('click', 'a.requestBtn', function() {
+  // show and switch affix content
+  $("#conversations_list").html('');
+  $("#dialogBox").show();
+
+  var commentId = $(this).data('commentid');
+  var url = root_url+"conversations/"+commentId
+  $('#comment_id').val(commentId);
 
   $.ajax({
     type: 'POST',
@@ -100,7 +97,42 @@ $('body').on('click', 'a.joinBtn', function() {
     success: function(data){
       console.log(data);
       if(!data.error){
-        $this.replaceWith("<a href='"+root_url+"withdraw/"+postid+"' data-postid='"+postid+"' class='btn btn-primary btn-large pull-right withdrawBtn'>Withdrawn</a>");
+        for(i=0; i<data.length; i++){
+          if(data[i].status){
+            $('#conversations_list').append('<li class="list-group-item">'+data[i].status+'</li>');
+            $('.conversation_sec').hide();
+          }else{
+            $('#conversations_list').append('<li class="list-group-item">'+data[i].text+'</li>');
+          }
+        }
+      }
+    }
+  });
+
+});
+
+$('body').on('submit', 'form.conversation_form', function(e) {
+
+  e.preventDefault();
+
+  var $this = $(this);
+
+  if($this.find('input.comments').val() == ""){
+    $this.find('input.comments').css("border-color","red");
+    $this.closest('.modal-body').next().find('small.errorMsg').html("You can't send an empty message.");
+    return;
+  }
+
+  $.ajax({
+    type: 'POST',
+    url: $this.attr('action'),
+    data: $this.serialize(),
+    dataType: "JSON",
+    success: function(data){
+      console.log(data.replied_text);
+      if(!data.error){
+        $('#conversations_list').append('<li class="list-group-item">'+data.replied_text+'</li>');
+        $this.find('input.comments').val('');
       }
     }
   });
@@ -108,23 +140,8 @@ $('body').on('click', 'a.joinBtn', function() {
   return false;
 });
 
-$('body').on('click', 'a.withdrawBtn', function() {
-  var url = $(this).attr('href');
-  var $this = $(this);
-  var postid = $this.data('postid');
-
-  $.ajax({
-    type: 'POST',
-    url: url,
-    success: function(data){
-      console.log(data);
-      if(!data.error){
-        $this.replaceWith("<a href='"+root_url+"join/"+postid+"' data-postid='"+postid+"' class='btn btn-primary btn-large pull-right joinBtn'>Join</a>");
-      }
-    }
-  });
-
-  return false;
+$('body').on('click', 'a#replySubmitBtn', function(e) {
+  $(this).closest('.row').prev().find('form.conversation_form').submit();
 });
 </script>
 
