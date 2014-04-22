@@ -21,12 +21,13 @@ class UsersController < ApplicationController
 		if @user.save
 			flash[:notice] = "you have successfully created an account for yourself!"
 			flash[:color] = "valid"
+
+			session[:user_id] = @user._id
+			render "users/edit"
 		else
 			flash[:alert] = "Somthing wrong when creating your account, please check your form and try again."
 			flash[:color] = "invalid"
 		end
-
-		render new
 
 		# redirect_to @user
 	end
